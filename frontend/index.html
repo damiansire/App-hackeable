@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="pageContainer">
+      <div class="tabla">
+        <table id="userDataTable">
+          <thead>
+            <tr>
+              <th scope="col">Nombre</th scope="col">
+              <th scope="col">Apellido</th scope="col">
+              <th scope="col">Edad</th scope="col">
+              <th scope="col">Contraseña</th scope="col">
+            </tr>
+          </thead>
+          <tbody id="userDataTableTBody"></tbody>
+        </table>
+      </div>
+      <div class="createUserContainer">
+        <h1>Crear Usuario</h1>
+        <form id="createUserForm">
+          <div>
+            <label for="name">Nombre</label>
+            <input id="name" />
+          </div>
+          <div>
+            <label for="surName">Apellido</label>
+            <input id="surName" name="surName" />
+          </div>
+          <div>
+            <label for="age">Edad</label>
+            <input id="age" name="age" />
+          </div>
+          <div>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" />
+          </div>
+          <div class="buttonContainer">
+            <button type="submit">Crear Usuario</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  .pageContainer {
+    display: flex;
+    justify-content: space-evenly;
+  }
+
+  #createUserForm > * {
+    margin-top: 10px;
+  }
+
+  tr > * {
+    padding: 10px;
+    border: 1px solid red;
+    text-align: center;
+  }
+  #createUserForm {
+    text-align: right;
+  }
+  .buttonContainer {
+    text-align: center;
+  }
+</style>
+
+<script>
+  const form = document.getElementById("createUserForm");
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const userData = eventToUserData(event);
+    const userDataJson = JSON.stringify(userData);
+    debugger;
+    fetch("http://localhost:3000/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: userDataJson,
+    }).then((result) => {
+      refreshTable();
+      document.getElementById("createUserForm").reset();
+    });
+  });
+
+  function eventToUserData(event) {
+    const elements = event.target.elements;
+    const name = event.target.elements.name.value;
+    const surname = event.target.elements.surName.value;
+    const age = elements.age.value;
+    const password = elements.password.value;
+    return {
+      name: name,
+      surname: surname,
+      age: age,
+      password: password,
+    };
+  }
+
+  async function refreshTable() {
+    const users = await getUserFromApi();
+    drawUserTable(users);
+  }
+
+  async function getUserFromApi() {
+    const response = await fetch("http://localhost:3000/users");
+    const users = await response.json();
+    return users;
+  }
+
+  async function drawUserTable(users) {
+    document.getElementById("userDataTableTBody").innerHTML = "";
+    users.forEach((user) => {
+      addUserToTable(user);
+    });
+  }
+
+  function addUserToTable(user) {
+    const userDataTable = document.getElementById("userDataTableTBody");
+    const row = userDataTable.insertRow(-1);
+    const cell1 = row.insertCell(0);
+    const cell2 = row.insertCell(1);
+    const cell3 = row.insertCell(2);
+    const cell4 = row.insertCell(3);
+    cell1.innerHTML = user.name;
+    cell2.innerHTML = user.surname;
+    cell3.innerHTML = user.age;
+    cell4.innerHTML = user.password;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    refreshTable();
+  });
+</script>
+
+/*
+CREATE TABLE users (name varchar, surname varchar, age varchar, password varchar)
+
+INSERT INTO users VALUES ('damian','sire', '23', '1231231' )
+
+SELECT * FROM users
+
+INSERT INTO users VALUES ('macri','mujica', '66', '123123312' )
+
+*/
